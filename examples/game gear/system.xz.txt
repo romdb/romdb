@@ -1,0 +1,4 @@
+game gear
+Sega Game Gear
+xz
+crc32

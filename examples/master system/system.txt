@@ -1,0 +1,4 @@
+master system
+Sega Master System
+deflate
+crc32

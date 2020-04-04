@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build_linux:
+    name: linux build
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: sudo apt -qq -y install libsqlite3-dev zlib1g-dev liblzma-dev
+
+    - name: CMake + make
+      run: |
+        export CC=/usr/bin/gcc-9
+        export CXX=/usr/bin/g++-9
+        cmake CMakeLists.txt
+        make
+
+  build_windows:
+    name: windows build
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Restore cached dependencies
+      id: cache-vcpkg
+      uses: actions/cache@v1
+      with:
+        path: C:/vcpkg/installed
+        key: cache-vcpkg
+
+    - name: Install dependencies
+      if: steps.cache-vcpkg.outputs.cache-hit != 'true'
+      run: vcpkg install sqlite3:x86-windows zlib:x86-windows liblzma:x86-windows
+
+    - name: CMake
+      run: |
+        cmake -G "Visual Studio 16 2019" -A Win32 CMakeLists.txt -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+        powershell -Command "(gc romdb.vcxproj) -replace 'MultiThreadedDLL', 'MultiThreaded' | Out-File -encoding UTF8 romdb.vcxproj"
+
+    - name: Setup MSBuild.exe
+      uses: warrenbuckley/Setup-MSBuild@v1
+
+    - name: MSBuild
+      working-directory: D:/a/romdb/romdb
+      run: msbuild romdb.vcxproj /p:Configuration=Release /p:Platform=Win32
+
+    - uses: actions/upload-artifact@v1
+      with:
+        name: romdb-windows-x86
+        path: D:/a/romdb/romdb/Release

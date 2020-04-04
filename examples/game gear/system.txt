@@ -1,0 +1,4 @@
+game gear
+Sega Game Gear
+deflate
+crc32
