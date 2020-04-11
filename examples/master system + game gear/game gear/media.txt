@@ -201,8 +201,8 @@ NBA Action
 NBA Jam
 NBA Jam Tournament Edition
 NFL '95
-NFL Quarterback Club '96
 NFL Quarterback Club
+NFL Quarterback Club '96
 NHL All-Star Hockey
 NHL Hockey
 Ninja Gaiden
@@ -355,8 +355,8 @@ World Class Leader Golf
 World Cup 94
 World Cup Soccer
 World Derby
-World Series Baseball '95
 World Series Baseball
+World Series Baseball '95
 WWF Raw
 WWF Steel Cage Challenge
 X-Men

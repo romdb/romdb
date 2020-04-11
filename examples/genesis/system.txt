@@ -1,0 +1,4 @@
+genesis
+Sega Genesis
+deflate
+crc32

@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <algorithm>
+#include "utf8.h"
 
 namespace utils
 {
@@ -41,6 +42,14 @@ namespace utils
 		return ret;
 	}
 
+	std::pair<std::string_view, std::string_view> splitFileExtension(const std::string_view str)
+	{
+		auto pos = str.find_last_of('.');
+		if (pos != std::string_view::npos)
+			return std::make_pair(str.substr(0, pos), str.substr(pos, str.size() - pos));
+		return std::make_pair(str, "");
+	};
+
 	std::pair<std::string, std::string> splitStringIn2(const std::string& str, char delimiter)
 	{
 		auto pos = str.find(delimiter, 0);
@@ -67,14 +76,22 @@ namespace utils
 		return strings;
 	}
 
-	stringSetNoCase filterStrings(stringSetNoCase& strings, std::string startsWith_)
+	std::string mergeLines(std::vector<std::string> lines)
 	{
-		stringSetNoCase filtered;
+		std::string str;
+		for (const auto& line : lines)
+			str += line + "\n";
+		return str;
+	}
+
+	std::vector<std::string> filterStrings(stringSetNoCase& strings, std::string startsWith_)
+	{
+		std::vector<std::string> filtered;
 		for (auto it = strings.begin(); it != strings.end();)
 		{
 			if (startsWith(*it, startsWith_))
 			{
-				filtered.insert(*it);
+				filtered.push_back(*it);
 				strings.erase(it++);
 			}
 			else
@@ -83,5 +100,21 @@ namespace utils
 			}
 		}
 		return filtered;
+	}
+
+	std::wstring str2wstr(const std::string& str)
+	{
+		auto itEnd = utf8::find_invalid(str.begin(), str.end());
+		std::wstring convStr;
+		utf8::utf8to16(str.begin(), itEnd, back_inserter(convStr));
+		return convStr;
+	}
+
+	std::string wstr2str(const std::wstring& str)
+	{
+		auto itEnd = utf8::find_invalid(str.begin(), str.end());
+		std::string convStr;
+		utf8::utf16to8(str.begin(), itEnd, back_inserter(convStr));
+		return convStr;
 	}
 }

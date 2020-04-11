@@ -1,6 +1,8 @@
 #include "romdb.h"
 #include <algorithm>
+#include "archive.h"
 #include <cctype>
+#include <deque>
 #include "file.h"
 #include <iostream>
 #include "schema.h"
@@ -11,6 +13,22 @@ namespace fs = std::filesystem;
 
 namespace
 {
+	std::vector<std::string> getFiles(const fs::path& filesPath)
+	{
+		if (!fs::exists(filesPath) || !fs::is_directory(filesPath))
+		{
+			return {};
+		}
+		std::vector<std::string> files;
+		for (const auto& it : fs::directory_iterator(filesPath))
+		{
+			if (!it.is_regular_file())
+				continue;
+			files.push_back(it.path().filename().string());
+		}
+		return files;
+	}
+
 	using TagsMap = utils::stringMapNoCase<utils::stringMapNoCase<std::string>>;
 
 	TagsMap getTags(const fs::path& tagsPath)
@@ -22,8 +40,7 @@ namespace
 
 		TagsMap tags;
 
-		using directory_iterator = fs::directory_iterator;
-		for (const auto& it : directory_iterator(tagsPath))
+		for (const auto& it : fs::directory_iterator(tagsPath))
 		{
 			if (!it.is_regular_file())
 				continue;
@@ -205,6 +222,7 @@ bool Romdb::importSystem(const fs::path& romsPath, const fs::path& importPath, c
 	std::string systemCode;
 	std::string compressionAlgorithm;
 	std::string hashingAlgorithm;
+	bool importArchives = false;
 	{
 		auto systemFilePath = getImportFile(importPath, "system", configName);
 		if (!fs::exists(systemFilePath) || fs::is_directory(systemFilePath))
@@ -219,6 +237,7 @@ bool Romdb::importSystem(const fs::path& romsPath, const fs::path& importPath, c
 		if (systemLines.size() >= 3)
 		{
 			compressionAlgorithm = utils::toLower(systemLines[2]);
+			importArchives = compressionAlgorithm == "archive";
 		}
 		if (systemLines.size() >= 4)
 		{
@@ -243,19 +262,47 @@ bool Romdb::importSystem(const fs::path& romsPath, const fs::path& importPath, c
 		}
 	}
 
-	// import media
+	// load media and files
+	std::vector<std::string> mediaLines;
+	std::vector<std::string> fileLines;
 	{
-		auto mediaFilePath = getImportFile(importPath, "media", configName);
-		if (!fs::exists(mediaFilePath) || fs::is_directory(mediaFilePath))
+		auto fileFilePath = getImportFile(importPath, "file", configName);
+		if (fs::exists(fileFilePath) && !fs::is_directory(fileFilePath))
 		{
-			return false;
+			fileLines = utils::splitStringInLines(file::readText(fileFilePath.string()));
 		}
-		auto mediaLines = utils::splitStringInLines(file::readText(mediaFilePath.string()));
-		if (mediaLines.empty())
+		else
+		{
+			fileLines = getFiles(romsPath);
+		}
+		if (fileLines.empty())
 		{
 			return false;
 		}
 
+		auto mediaFilePath = getImportFile(importPath, "media", configName);
+		if (fs::exists(mediaFilePath) && !fs::is_directory(mediaFilePath))
+		{
+			mediaLines = utils::splitStringInLines(file::readText(mediaFilePath.string()));
+		}
+		else
+		{
+			for (const auto& line : fileLines)
+			{
+				auto fe = utils::splitFileExtension(line);
+				if (!fe.first.empty())
+					mediaLines.push_back(std::string(fe.first));
+			}
+			std::sort(mediaLines.begin(), mediaLines.end(), utils::compareCaseInsensitive());
+		}
+		if (mediaLines.empty())
+		{
+			return false;
+		}
+	}
+
+	// import media
+	{
 		auto mediaTags = getTags(importPath / "mediatag");
 
 		for (const auto& media : mediaLines)
@@ -355,20 +402,10 @@ bool Romdb::importSystem(const fs::path& romsPath, const fs::path& importPath, c
 
 	// import files
 	{
-		auto fileFilePath = getImportFile(importPath, "file", configName);
-		if (!fs::exists(fileFilePath) || fs::is_directory(fileFilePath))
-		{
-			return false;
-		}
-		auto fileLines = utils::splitStringInLines(file::readText(fileFilePath.string()));
-		if (fileLines.empty())
-		{
-			return false;
-		}
 		utils::stringSetNoCase fileLinesSet(fileLines.begin(), fileLines.end());
 
-		using MediaFile = std::pair<long long, utils::stringSetNoCase>;
-		std::set<MediaFile> filesToInsert;
+		using MediaFile = std::pair<long long, std::vector<std::string>>;
+		std::deque<MediaFile> filesToInsert;
 
 		// group files to media
 		query qry(*db, "SELECT id, name FROM media WHERE system_id = :system_id ORDER BY name COLLATE NOCASE DESC");
@@ -378,54 +415,88 @@ bool Romdb::importSystem(const fs::path& romsPath, const fs::path& importPath, c
 			auto mediaId = row.get<long long>(0);
 			auto mediaName = row.get<std::string>(1);
 			auto filteredFiles = utils::filterStrings(fileLinesSet, mediaName);
-			filesToInsert.insert({ mediaId, filteredFiles });
+			filesToInsert.push_front({ mediaId, filteredFiles });
 		}
 
 		auto fileTags = getTags(importPath / "filetag");
 
 		// insert files
-		for (const auto& files : filesToInsert)
+		for (auto& files : filesToInsert)
 		{
+			std::vector<char> archBytes;
+			std::unique_ptr<Archive> arch;
+			bool archiveFile = true;
+			long long archiveParentId = 0;
 			auto mediaId = files.first;
-			for (const auto& file : files.second)
+			for (size_t fileIdx = 0; fileIdx < files.second.size(); fileIdx++)
 			{
+				const auto file = files.second[fileIdx];
 				if (file.empty())
 					continue;
 
 				auto filePath = romsPath / file;
-				if (!fs::exists(filePath) || fs::is_directory(filePath))
+				if (!importArchives || (importArchives && archiveFile))
 				{
-					continue;
+					if (!fs::exists(filePath) || fs::is_directory(filePath))
+					{
+						continue;
+					}
 				}
 				std::vector<char> fileBytes;
 				long long uncompressedFileSize = 0;
 				bool fileCompressed = false;
 				if (patchLinesMap.find(file) == patchLinesMap.end())
 				{
-					fileBytes = file::readBytes(filePath.string());
-					uncompressedFileSize = fileBytes.size();
-					fileCompressed = file::compress(fileBytes, compressionAlgorithm);
+					if (importArchives)
+					{
+						if (!arch)
+						{
+							archBytes = file::readBytes(filePath.string());
+							uncompressedFileSize = archBytes.size();
+							arch = Archive::openArchive(archBytes.data(), archBytes.size());
+							if (!arch)
+								continue;
+							for (const auto& name : arch->getFileNames())
+								files.second.push_back(name);
+						}
+					}
+					else
+					{
+						fileBytes = file::readBytes(filePath.string());
+						uncompressedFileSize = fileBytes.size();
+						fileCompressed = file::compress(fileBytes, compressionAlgorithm);
+					}
 				}
 				else
 					uncompressedFileSize = fs::file_size(filePath);
 
-				command cmd(*db, "INSERT INTO file (name, data, size, compression, media_id) VALUES(:name, :data, "
-								 ":size, :compression, :media_id) ON CONFLICT DO NOTHING");
+				command cmd(*db,
+					"INSERT INTO file (name, data, size, compression, media_id, parent_id) VALUES(:name, :data, "
+					":size, :compression, :media_id, :parent_id) ON CONFLICT DO NOTHING");
 				cmd.bind(":name", file, nocopy);
-				if (!fileBytes.empty())
-					cmd.bind(":data", fileBytes.data(), fileBytes.size(), nocopy);
+				if (importArchives)
+				{
+					if (!archBytes.empty() && archiveFile)
+						cmd.bind(":data", archBytes.data(), archBytes.size(), nocopy);
+					else
+						cmd.bind(":data");
+				}
 				else
-					cmd.bind(":data");
+				{
+					if (!fileBytes.empty())
+						cmd.bind(":data", fileBytes.data(), fileBytes.size(), nocopy);
+					else
+						cmd.bind(":data");
+				}
 				cmd.bind(":size", uncompressedFileSize);
-				if (fileCompressed)
+				if (fileCompressed || (importArchives && archiveFile))
 					cmd.bind(":compression", compressionAlgorithm, nocopy);
 				else
 					cmd.bind(":compression");
 				cmd.bind(":media_id", mediaId);
+				if (importArchives && !archiveFile)
+					cmd.bind(":parent_id", archiveParentId);
 				auto fileInsertResult = cmd.execute();
-
-				if (hashingAlgorithm.empty())
-					continue;
 
 				long long fileId = 0;
 				if (fileInsertResult == SQLITE_OK)
@@ -447,9 +518,22 @@ bool Romdb::importSystem(const fs::path& romsPath, const fs::path& importPath, c
 						break;
 					}
 				}
+				if (importArchives && archiveFile)
+					archiveParentId = fileId;
 
 				// upsert file hash
-				upsertChecksum(*db, fileBytes, fileId, hashingAlgorithm);
+				if (!hashingAlgorithm.empty())
+				{
+					if (importArchives)
+					{
+						if (archiveFile)
+							upsertChecksum(*db, archBytes, fileId, hashingAlgorithm);
+					}
+					else
+						upsertChecksum(*db, fileBytes, fileId, hashingAlgorithm);
+				}
+
+				archiveFile = false;
 
 				// insert file tags
 				auto it = fileTags.find(file);
@@ -557,26 +641,42 @@ std::vector<char> Romdb::getFile(long long fileId)
 		return {};
 
 	std::vector<char> fileBytes;
-	query qry(*db, "SELECT data, LENGTH(data), size, IFNULL(compression, ''), parent_id FROM file WHERE id = :file_id");
+	query qry(*db,
+		"WITH RECURSIVE file2(name, data, datalength, size, compression, id, parent_id, idx) AS (SELECT name, data, "
+		"LENGTH(data) datalength, size, IFNULL(compression, '') compression, id, parent_id, 1 FROM file WHERE id "
+		"= :file_id UNION ALL SELECT f.name, f.data, LENGTH(f.data) datalength, f.size, IFNULL(f.compression, '') "
+		"compression, f.id, f.parent_id, idx + 1 FROM file f, file2 WHERE file2.parent_id = f.id LIMIT 20) SELECT "
+		"DISTINCT name, data, datalength, size, compression FROM file2 ORDER BY idx DESC");
 	qry.bind(":file_id", fileId);
 	for (const auto& file : qry)
 	{
-		auto data = file.get<void const*>(0);
-		auto size = file.get<long long>(1);
-		auto uncompressedSize = file.get<long long>(2);
-		auto compression = file.get<std::string>(3);
-		auto parentId = file.get<long long>(4);
+		auto data = file.get<void const*>(1);
+		auto size = (size_t)file.get<long long>(2);
+		auto uncompressedSize = (size_t)file.get<long long>(3);
+		auto compression = file.get<std::string>(4);
+		auto parentId = file.get<long long>(5);
 
-		fileBytes = std::vector<char>((const char*)data, (const char*)data + size);
-		file::uncompress(fileBytes, (size_t)uncompressedSize, compression);
-
-		if (file.column_type(4) != SQLITE_NULL)
+		if (fileBytes.empty())
 		{
-			auto inputBytes = getFile(parentId);
-			fileBytes = file::applyPatch(
-				inputBytes.data(), inputBytes.size(), fileBytes.data(), fileBytes.size(), (size_t)uncompressedSize);
+			fileBytes = std::vector<char>((const char*)data, (const char*)data + size);
+			file::uncompress(fileBytes, uncompressedSize, compression);
 		}
-		break;
+		else if (!data && !uncompressedSize)
+		{
+			auto archive = Archive::openArchive(fileBytes.data(), fileBytes.size());
+			if (archive)
+			{
+				auto name = file.get<std::string>(0);
+				fileBytes = archive->getFile(name);
+			}
+		}
+		else
+		{
+			auto patchBytes = std::vector<char>((const char*)data, (const char*)data + size);
+			file::uncompress(patchBytes, uncompressedSize, compression);
+			fileBytes = file::applyPatch(
+				fileBytes.data(), fileBytes.size(), patchBytes.data(), patchBytes.size(), uncompressedSize);
+		}
 	}
 	return fileBytes;
 }
@@ -597,6 +697,7 @@ bool Romdb::dump(const std::string& dumpPath_, bool fullDump)
 		auto systemId = system.get<long long>(0);
 		auto systemName = system.get<std::string>(1);
 		auto systemCode = system.get<std::string>(2);
+		bool hasArchives = false;
 
 		auto systemPath = dumpPath / systemCode;
 		fs::create_directories(systemPath);
@@ -617,6 +718,7 @@ bool Romdb::dump(const std::string& dumpPath_, bool fullDump)
 			for (const auto& val : qry)
 			{
 				compression = val.get<std::string>(0);
+				hasArchives = compression == "archive";
 				break;
 			}
 			systemText += compression + "\n";
@@ -652,7 +754,7 @@ bool Romdb::dump(const std::string& dumpPath_, bool fullDump)
 		}
 		{
 			query qry(*db, "SELECT id, name FROM file WHERE media_id IN (SELECT id FROM media "
-						   "WHERE system_id = :system_id)");
+						   "WHERE system_id = :system_id) AND data IS NOT NULL AND size > 0");
 			qry.bind(":system_id", systemId);
 			for (const auto& file : qry)
 			{
@@ -674,6 +776,7 @@ bool Romdb::dump(const std::string& dumpPath_, bool fullDump)
 		file::writeText(fileTextPath.string(), fileText);
 
 		// patch
+		if (hasArchives == false)
 		{
 			std::string patchText;
 			std::string currentPatchKey;
@@ -892,7 +995,7 @@ bool Romdb::createSystemPatchFile(
 	}
 
 	// group files to media
-	std::set<utils::stringSetNoCase> mediaFilesSet;
+	std::set<std::vector<std::string>> mediaFilesSet;
 	for (const auto& media : utils::reverse(mediaLines))
 	{
 		if (media.empty())

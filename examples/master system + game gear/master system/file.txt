@@ -132,8 +132,8 @@ Choplifter (UE) [o1].sms
 Chuck Rock (U) [!].sms
 Chuck Rock 2 (UE) [!].sms
 Circuit, The (J) [!].sms
-Cloud Master (JUE) [b1].sms
 Cloud Master (JUE).sms
+Cloud Master (JUE) [b1].sms
 Columns (UE) [!].sms
 Congo Bongo (SG-1000).sg
 Cool Spot (UE) [!].sms
@@ -201,8 +201,8 @@ Final Bubble Bobble (J) [!].sms
 Final Bubble Bobble (J) [T+Spa100_pkt].sms
 Fire & Forget 2 (UE) [!].sms
 Flash, The (UE) [!].sms
-Flicky (SG-1000) [b1].sms
 Flicky (SG-1000).sg
+Flicky (SG-1000) [b1].sms
 Flintstones, The (UE) [!].sms
 Forgotten Worlds (UE) [!].sms
 Fri For Fransk! V1.02 by Mark Klemp (PD).sms
@@ -296,8 +296,8 @@ Hang-On (UE) [!].sms
 Hang-On (UE) [T+Por].sms
 Hang-On (UE) [T-Por].sms
 Hang-On 2 (SG-1000).sg
-Happy Looser by Zoop (PD) [a1].sms
 Happy Looser by Zoop (PD).sms
+Happy Looser by Zoop (PD) [a1].sms
 Heavyweight Champ (UE) [!].sms
 Heroes of the Lance (UE) [!].sms
 High School Kimengumi (J) [!].sms
@@ -324,9 +324,9 @@ James Pond 2 - Codename Robocod (UE) [b1].sms
 Japanese SMS BIOS v2.1 (J) [!].sms
 Joe Montana Football (U) [!].sms
 Jogos de Verao 2 (Brazil) [!].sms
+Jornada do Mymo (Psycho Fox Hack).sms
 Jornada do Mymo (Psycho Fox Hack) [a1].sms
 Jornada do Mymo (Psycho Fox Hack) [b1].sms
-Jornada do Mymo (Psycho Fox Hack).sms
 Jornada do Mymo II (Psycho Fox Hack).sms
 Jungle Book, The (UE) [!].sms
 Jungle Book, The (UE) [b1].sms
@@ -379,8 +379,8 @@ Master Mega Man (WonderBoy in ML Hack).sms
 Master of Darkness (UE) [!].sms
 Master of Darkness (UE) [b1].sms
 Master Smash Brothers V1.0 (Psycho Fox Hack).sms
-Master Zelda (Brazil) (Teddy Boy Hack) [a1].sms
 Master Zelda (Brazil) (Teddy Boy Hack).sms
+Master Zelda (Brazil) (Teddy Boy Hack) [a1].sms
 Masters of Combat (UE) [!].sms
 Masters of Combat (UE) [b1].sms
 Maze Hunter 3D (U) [!].sms
@@ -459,8 +459,8 @@ Parlour Games (UE) [!].sms
 Party Games (J) [!].sms
 Pat Riley Basketball (U) (Proto) [!].sms
 Penguin Land (J) [!].sms
-Penguin Land (SG-1000) [b1].sms
 Penguin Land (SG-1000).sg
+Penguin Land (SG-1000) [b1].sms
 Penguin Land (UE) [!].sms
 PFR Detect V1.00 by Eric R. Quinn (PD).sms
 PFR Detect V2.00 by Eric R. Quinn (PD).sms
@@ -534,10 +534,10 @@ Rocky (UE) [!].sms
 Rocky (UE) [b1].sms
 Rodrigo 2 em Mate o Leonardo (Teddy Boy Hack).sms
 Rodrigo 2 em Mate o Papai Noel-Versao de Natal (T.Boy Hack).sms
+Rodrigo o Resgate (WB Hack).sms
 Rodrigo o Resgate (WB Hack) [a1].sms
 Rodrigo o Resgate (WB Hack) [a1][o1].sms
 Rodrigo o Resgate (WB Hack) [o1].sms
-Rodrigo o Resgate (WB Hack).sms
 Running Battle (UE) [!].sms
 Rygar (J) [!].sms
 Rygar (J) [a1][!].sms
@@ -558,8 +558,8 @@ SDI (JUE) [!].sms
 Secret Commando (UE) [!].sms
 Secret Commando (UE) [o1].sms
 Sega BASIC Level 2 (SC-3000).sc
-Sega BASIC Level 3 V1 (SC-3000) [b1].sms
 Sega BASIC Level 3 V1 (SC-3000).sc
+Sega BASIC Level 3 V1 (SC-3000) [b1].sms
 Sega Chess (UE) [!].sms
 Sega Chess (UE) [T+Spa].sms
 Sega Disk Basic v1.0p (SF-7000).sf7
@@ -602,8 +602,8 @@ SMS Tetris Release 4 by Heliophobe (PD).sms
 SMS VGM player V0.45 by Maxim (PD).sms
 SMSC Basic Demo (PD) [b1].sms
 SMSC Text Demo V1 (PD) [b1].sms
-SMSC Text Demo V2 (PD) [b1].sms
 SMSC Text Demo V2 (PD).sms
+SMSC Text Demo V2 (PD) [b1].sms
 Smurfs 2, The (Smurfs Travel the World) (E) [!].sms
 Smurfs, The (UE) [!].sms
 Snail Music Demo (PD).sms
@@ -686,8 +686,8 @@ Taz-Mania (UE) [a1][!].sms
 Taz-Mania (UE) [T+Por][p1][!].sms
 Teddy Boy (UE) [!].sms
 Teddy Boy Blues (J) [!].sms
-Teddy Boy e Geraldinho (Brazil) (partial translation).sms
 Teddy Boy e Geraldinho (Brazil).sms
+Teddy Boy e Geraldinho (Brazil) (partial translation).sms
 Tennis Ace (UE) [!].sms
 Tensai Bakabon (J) [!].sms
 Terebi Oekaki (SG-1000) [!].sg
@@ -700,17 +700,17 @@ Time Soldiers (UE) [!].sms
 Time Soldiers (UE) [T+Por_CBT].sms
 Time Soldiers (UE) [T+Por_Emunow].sms
 Tom and Jerry (UE) [!].sms
+Tom and Jerry - The Movie (UE).sms
 Tom and Jerry - The Movie (UE) [b1].sms
 Tom and Jerry - The Movie (UE) [b2].sms
-Tom and Jerry - The Movie (UE).sms
 Toto World 3 (Korean) [!].sms
+Trans-Bot (UE).sms
 Trans-Bot (UE) [o1].sms
 Trans-Bot (UE) [o2].sms
 Trans-Bot (UE) [o3].sms
-Trans-Bot (UE).sms
 Trap Shooting - Marksman Shooting - Safari Hunt (UE) [!].sms
-Treinamento Do Guerreiro Lobo (WonderBoy in MW Hack) [a1].sms
 Treinamento Do Guerreiro Lobo (WonderBoy in MW Hack).sms
+Treinamento Do Guerreiro Lobo (WonderBoy in MW Hack) [a1].sms
 Treinamento Do Mymo (Brazil).sms
 Trivial Pursuit (UE) [!].sms
 Turma da Monica em O Resgate (Brazil) [!].sms

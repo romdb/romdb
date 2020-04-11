@@ -14,8 +14,8 @@ romdb can:
 
 1. Store multiple ROM collections in one file
 2. Add System and Media information to each file
-3. optionally compress files using deflate or xz
-4. store [VCDIFF](https://en.wikipedia.org/wiki/VCDIFF) patches for similar files to save space
+3. Optionally compress files using deflate or xz
+4. Store [VCDIFF](https://en.wikipedia.org/wiki/VCDIFF) patches for similar files to save space
 5. Associate metadata to files and media
 
 # How to use
@@ -366,6 +366,18 @@ Alex Kidd in High Tech World (UE) [!].sms
 Alex Kidd in Miracle World (UE) [!].sms
 ```
 
+## Creating a romdb 7zip archive
+Another option to create a romdb is to import a collection of 7zip archives.
+
+To import arvhives you only need a `system.txt` file, which contains 4 lines:
+```
+master system              <- system code
+Sega Master System         <- system name
+archive                    <- import as archives
+none                       <- checksum algorithm
+```
+A media entry will be created for each archive and the top level files in each archive will be added to the `file` table linked to its parent archive.
+
 # Size of romdb
 
 The main goal of romdb is not to minimize the size of the collection, but to have a whole system in one file that's fast and easy to get information from.
@@ -378,6 +390,7 @@ folder with individual zip files  | 85 MB
 7zip compressed archive           | 40 MB
 romdb (defalte + patch)           | 52 MB
 romdb (xz + patch)                | 46 MB
+romdb (7zip archives)             | 40 MB
 
 ### Master System (790 files) + Game Gear (532 files)
 format                              | Size

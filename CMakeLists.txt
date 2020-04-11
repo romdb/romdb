@@ -14,10 +14,15 @@ include_directories(${LIBLZMA_INCLUDE_DIRS})
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/thirdparty/clipp/include)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/thirdparty/Hash/src)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/thirdparty/NaturalSort)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/thirdparty/physfs/src)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/thirdparty/sqlite3pp/headeronly_src)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/thirdparty/utfcpp/source)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/thirdparty/xdelta3)
 
 set(SOURCE_FILES
+    src/7zip.cpp
+    src/archive.cpp
     src/file.cpp
     src/main.cpp
     src/romdb.cpp

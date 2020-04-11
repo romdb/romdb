@@ -18,6 +18,8 @@ namespace file
 		std::string sha512(const char* data, size_t size);
 	}
 
+	void sort(const std::string& filePath);
+
 	std::vector<char> readBytes(const std::string& filePath);
 
 	std::string readText(const std::string& filePath);

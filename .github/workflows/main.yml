@@ -45,7 +45,7 @@ jobs:
         cmake -G "Visual Studio 16 2019" -A Win32 CMakeLists.txt -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
         powershell -Command "(gc romdb.vcxproj) -replace 'MultiThreadedDLL', 'MultiThreaded' | Out-File -encoding UTF8 romdb.vcxproj"
 
-    - name: Setup MSBuild.exe
+    - name: Setup MSBuild
       uses: warrenbuckley/Setup-MSBuild@v1
 
     - name: MSBuild

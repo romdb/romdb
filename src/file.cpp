@@ -5,6 +5,7 @@
 #include <sha1.h>
 #include <sha2_256.h>
 #include <sha2_512.h>
+#include "utils.h"
 #include <xdelta3.h>
 #include <zlib.h>
 
@@ -56,6 +57,30 @@ std::string file::hash::sha512(const char* data, size_t size)
 	hashFunc.addData(data, size);
 	hashFunc.finalize();
 	return hashFunc.toString();
+}
+
+void file::sort(const std::string& filePath)
+{
+	auto fileLines = utils::splitStringInLines(file::readText(filePath));
+	if (fileLines.empty())
+	{
+		return;
+	}
+	std::sort(fileLines.begin(), fileLines.end(), utils::compareCaseInsensitive());
+	std::string sortedText;
+	size_t numBlanks = 0;
+	for (const auto& line : fileLines)
+	{
+		if (line.empty())
+		{
+			numBlanks++;
+			continue;
+		}
+		sortedText += line + "\n";
+	}
+	for (size_t i = 1; i < numBlanks; i++)
+		sortedText += "\n";
+	writeBytes(filePath, sortedText.data(), sortedText.size());
 }
 
 std::vector<char> file::readBytes(const std::string& filePath)

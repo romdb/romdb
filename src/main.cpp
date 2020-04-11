@@ -1,4 +1,5 @@
 #include <clipp.h>
+#include "file.h"
 #include <iostream>
 #include "romdb.h"
 #include <string>
@@ -11,6 +12,7 @@ int main(int argc, char* argv[])
 	std::string importPath;
 	std::string patchFilePath;
 	std::string configName;
+	std::string sortFile;
 	bool dump = false;
 	bool fullDump = false;
 	bool verify = false;
@@ -25,6 +27,7 @@ int main(int argc, char* argv[])
 		clipp::option("-d", "--dump").set(dump).doc("dump roms"),
 		clipp::option("-f", "--full-dump").set(fullDump).doc("dump roms and metadata"),
 		clipp::option("-v", "--verify").set(verify).doc("verify romdb integrity"),
+		clipp::option("--sort") & clipp::value("natural sort text file", sortFile),
 		clipp::option("-h", "--help").set(help).doc("help"));
 
 	if (!parse(argc, argv, cli) || help)
@@ -35,7 +38,11 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		if (patchFilePath.empty())
+		if (!sortFile.empty())
+		{
+			file::sort(sortFile);
+		}
+		else if (patchFilePath.empty())
 		{
 			if (!importPath.empty())
 			{

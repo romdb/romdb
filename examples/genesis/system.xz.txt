@@ -1,0 +1,4 @@
+genesis
+Sega Genesis
+xz
+crc32
