@@ -46,7 +46,7 @@ jobs:
         powershell -Command "(gc romdb.vcxproj) -replace 'MultiThreadedDLL', 'MultiThreaded' | Out-File -encoding UTF8 romdb.vcxproj"
 
     - name: Setup MSBuild
-      uses: warrenbuckley/Setup-MSBuild@v1
+      uses: microsoft/setup-msbuild@v1.0.2
 
     - name: MSBuild
       working-directory: D:/a/romdb/romdb
